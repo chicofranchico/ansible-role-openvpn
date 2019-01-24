@@ -28,7 +28,7 @@ openvpn_push: []
 manage_firewall_rules: true
 iptables_service: iptables
 openvpn_client_register_dns: true
-client_config_dir: false
+openvpn_client_config_dir: false
 client_to_client: false
 openvpn_client_template: "client.ovpn.j2"
 openvpn_custom_dns: false
