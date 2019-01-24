@@ -24,7 +24,14 @@
     mode: 0400
   when: ansible_os_family != 'Solaris'
 
-- name: Setup openvpn auto-start & start
+- name: create client config dir
+  file:
+    path: /etc/openvpn/ccd
+    state: directory
+    mode: 0755
+  when: client_config_dir
+
+- name: setup openvpn auto-start & start
   service:
     name: "{{openvpn_service_name}}"
     enabled: yes
