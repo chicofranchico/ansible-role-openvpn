@@ -19,10 +19,26 @@ Requirements
 
 Openvpn must be available as a package in yum/apt! For CentOS users, this role will run `yum install epel-release` to ensure openvpn is available.
 
-Ubuntu precise has a [weird bug](https://bugs.launchpad.net/ubuntu/+source/iptables-persistent/+bug/1002078) that might make the iptables-persistent install fail. There is a [workaround](https://forum.linode.com/viewtopic.php?p=58233#p58233).
 
 Role Variables
 --------------
+
+### Example clients dictionary:
+
+In case you need specific configuration like a fixed IP address or to push a route.
+
+Make sure the `openvpn_client_config_dirname` variable is set to write specific configs correctly.
+
+```clients:
+  - client1
+  - client2:
+      client_specifc_config:
+        - "ifconfig-push 10.9.0.2 10.9.0.1"
+        - "iroute 10.0.0.0 255.255.0.0"
+  - client3
+```
+
+### Configuration variables
 
 | Variable                           | Type    | Choices      | Default                                        | Comment                                                                                                                                                           |
 |------------------------------------|---------|--------------|------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -30,10 +46,10 @@ Role Variables
 | openvpn_key_dir                    | string  |              | /etc/openvpn/keys                              | Path where your server private keys and CA will be stored                                                                                                         |
 | openvpn_port                       | int     |              | 1194                                           | The port you want OpenVPN to run on. If you have different ports on   different servers, I suggest you set the port in your inventory file.                       |
 | openvpn_server_hostname            | string  |              | `{{inventory_hostname}}`                       | The server name to place in the client configuration file (if different from the `inventory_hostname`             |
-| openvpn_proto | string  | udp, tcp | udp | The protocol you want OpenVPN to use |
-| openvpn_dualstack | boolean | | true | Whether or not to use a dualstack (IPv4 + v6) socket |
-| openvpn_config_file                | string  |              | openvpn_{{ openvpn\_proto }}_{{ openvpn_port }} |  The config file name you want to   use                                                                                                                          |
-| openvpn_client_template            | string  |              | client.ovpn.j2 |  Location of template for clients ovpn file                                                                                                                          |
+| openvpn_proto | string  | udp, tcp | udp                    | The protocol you want OpenVPN to use           |
+| openvpn_dualstack                  | boolean |              | true                                           | Whether or not to use a dualstack (IPv4 + v6) socket |
+| openvpn_config_file                | string  |              | openvpn_{{ openvpn\_proto }}_{{ openvpn_port }}| The config file name you want to   use                                                                                                                          |
+| openvpn_client_template            | string  |              | client.ovpn.j2                                 | Location of template for clients ovpn file                                                                                                                          |
 | openvpn_rsa_bits                   | int     |              | 2048                                           | Number of bit used to protect generated certificates                                                                                                              |
 | openvpn_service_name               | string  |              | openvpn                                        | Name of the service. Used by systemctl to start the service                                                                                                       |
 | openvpn_uninstall                  | boolean | true , false | false                                          | Set to true to uninstall the OpenVPN service                                                                                                                      |
@@ -60,7 +76,7 @@ Role Variables
 | manage_firewall_rules              | boolean | true , false | true                                           | Allow playbook to manage iptables                                                                                                                                 |
 | openvpn_crl_path                   | string  |              |                                                | Define a path to the CRL file for revokations.                                                                                                       |
 | openvpn_client_register_dns        | boolean | true , false | true                                           | Add `register-dns` option to client config (Windows only).                                                                                                      |
-| openvpn_client_config_dir          | boolean | true , false | false                                          | Enable directory "/etc/openvpn/ccd" for custom client config files.                                                                                               |
+| openvpn_client_config_dirname      | string  |              |                                                | Enable directory under "/etc/openvpn/<name>" for custom client config files.                                                                                               |
 | client_to_client                   | boolean | true , false | false                                          | The flag  tells  OpenVPN  to  internally  route client-to-client traffic rather than pushing all client-originating traffic to the TUN/TAP interface.             |
 | openvpn_crl_path                   | string  |              |                                                | Define a path to the CRL file for revokations.                                                                                                                    |
 | openvpn_use_crl                    | boolean | true , false |                                                | Configure OpenVPN server to honor certificate revocation list.                                                                                                    |

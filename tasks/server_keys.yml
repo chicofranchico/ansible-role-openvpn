@@ -31,8 +31,26 @@
     mode: 0444
   when: openvpn_ca_key is defined
 
+- name: construct subj ca
+  set_fact:
+    openvpn_server_ca_subj: "/C={{ cert_country_name[:64] }}/ST={{ cert_state[:64] }}/L={{ cert_locality[:64] }}/O={{ cert_org_name[:64] }}/CN={{ inventory_hostname[:64] }}"
+  when:
+    - cert_country_name is defined
+    - cert_state is defined
+    - cert_locality is defined
+    - cert_org_name is defined
+
+- name: construct subj ca
+  set_fact:
+    openvpn_server_ca_subj: "/CN=OpenVPN-CA-{{inventory_hostname[:53]}}/"
+  when:
+    - cert_country_name is not defined
+    - cert_state is not defined
+    - cert_locality is not defined
+    - cert_org_name is not defined
+
 - name: Generate CA key
-  command: openssl req -utf8 -nodes -newkey rsa:{{ openvpn_rsa_bits }} -keyout ca-key.pem -out ca-csr.pem -days 3650 -subj "/C={{ cert_country_name[:64] }}/ST={{ cert_state[:64] }}/L={{ cert_locality[:64] }}/O={{ cert_org_name[:64] }}/CN={{ inventory_hostname[:64] }}"
+  command: openssl req -utf8 -nodes -newkey rsa:{{ openvpn_rsa_bits }} -keyout ca-key.pem -out ca-csr.pem -days 3650 -subj "{{ openvpn_server_ca_subj }}"
   args:
     chdir: "{{ openvpn_key_dir }}"
     creates: ca-key.pem
@@ -66,7 +84,7 @@
   when: openvpn_server_key is defined
 
 - name: generate server key
-  command: openssl req -utf8 -nodes -newkey rsa:{{ openvpn_rsa_bits }} -keyout server.key -out server.csr -days 3650 -subj "/C={{ cert_country_name[:64] }}/ST={{ cert_state[:64] }}/L={{ cert_locality[:64] }}/O={{ cert_org_name[:64] }}/CN={{ inventory_hostname[:64] }}"
+  command: openssl req -utf8 -nodes -newkey rsa:{{ openvpn_rsa_bits }} -keyout server.key -out server.csr -days 3650 -subj "{{ openvpn_server_ca_subj }}"
   args:
     chdir: "{{ openvpn_key_dir }}"
     creates: server.key

@@ -1,44 +1,53 @@
 ---
+openvpn_config_file: "openvpn_{{ openvpn_proto }}_{{ openvpn_port }}"
+
+# defaults for openssl
+openssl_server_ext: 'openssl-server.ext'
+openssl_ca_ext: 'openssl-ca.ext'
+openvpn_dh_param_file: 'dh.pem'
+openssl_client_ext: 'openssl-client.ext'
+
 # defaults file for openvpn
 openvpn_base_dir: /etc/openvpn
 openvpn_key_dir: /etc/openvpn/keys
 openvpn_port: 1194
 openvpn_server_hostname: "{{inventory_hostname}}"
 openvpn_proto: udp
-openvpn_dualstack: true
+openvpn_dualstack: True
 openvpn_rsa_bits: 2048
 openvpn_service_name: openvpn
-openvpn_uninstall: false
-openvpn_use_pregenerated_dh_params: false
-openvpn_use_hardened_tls: true
-openvpn_use_modern_tls: true
-openvpn_verify_cn: false
-openvpn_redirect_gateway: true
-openvpn_set_dns: true
-openvpn_enable_management: false
+openvpn_uninstall: False
+openvpn_use_pregenerated_dh_params: False
+openvpn_use_hardened_tls: True
+openvpn_use_modern_tls: True
+openvpn_verify_cn: False
+openvpn_redirect_gateway: True
+openvpn_set_dns: True
+openvpn_enable_management: False
 openvpn_management_bind: /var/run/openvpn/management unix
 openvpn_management_client_user: root
 openvpn_server_network: 10.9.0.0
 openvpn_server_netmask: 255.255.255.0
-tls_auth_required: true
-ci_build: false
+tls_auth_required: True
+ci_build: False
 openvpn_fetch_config_dir: /tmp/ansible
 clients: []
 openvpn_push: []
-manage_firewall_rules: true
+manage_firewall_rules: True
 iptables_service: iptables
-openvpn_client_register_dns: true
-openvpn_client_config_dir: false
-client_to_client: false
+openvpn_client_register_dns: True
+openvpn_client_config_dirname: ccd
+openvpn_client_specifc_config: {}
+client_to_client: False
 openvpn_client_template: "client.ovpn.j2"
-openvpn_custom_dns: false
+openvpn_custom_dns: False
 openvpn_dns_servers: []
-openvpn_use_crl: false
-openvpn_duplicate_cn: false
+openvpn_use_crl: False
+openvpn_duplicate_cn: False
 openvpn_status_version: 1
 openvpn_resolv_retry: 5
-openvpn_client_to_client: false
-openvpn_masquerade_not_snat: false
+openvpn_client_to_client: False
+openvpn_masquerade_not_snat: False
 openvpn_addl_server_options: []
 openvpn_addl_client_options: []
 openvpn_compression: lzo
@@ -49,7 +58,7 @@ openvpn_tun_mtu:
 firewalld_default_interface_zone: public
 
 # LDAP configuration
-openvpn_use_ldap: false
+openvpn_use_ldap: False
 ldap:
   url: ldap://host.example.com
   anonymous_bind: False

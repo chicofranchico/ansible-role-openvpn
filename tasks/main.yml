@@ -8,7 +8,7 @@
   tags: [always]
 
 - name: Set facts
-  include_tasks: set_facts.yml
+  import_tasks: set_facts.yml
   tags: [always]
 
 - name: Uninstall OpenVPN
@@ -65,7 +65,7 @@
     - revocation
 
 - name: Configure OpenVPN server
-  include_tasks: config.yml
+  import_tasks: config.yml
   tags:
     - configure
 
@@ -73,7 +73,7 @@
   include_tasks: tunnelblick.yml
   when:
     - clients is defined
-    - tunnelblick
+    - tunnelblick is defined
   tags:
     - configure
 

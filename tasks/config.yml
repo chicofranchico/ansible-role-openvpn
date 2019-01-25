@@ -1,3 +1,4 @@
+---
 - name: Create openvpn config file
   template:
     src: server.conf.j2
@@ -26,10 +27,16 @@
 
 - name: create client config dir
   file:
-    path: /etc/openvpn/ccd
+    path: "{{ openvpn_base_dir }}/{{ openvpn_client_config_dirname }}"
+    owner: nobody
+    group: nogroup
     state: directory
     mode: 0755
-  when: openvpn_client_config_dir
+  when: openvpn_client_config_dirname is defined
+
+- name: deine mutter
+  debug:
+    msg: "{{ openvpn_service_name }}"
 
 - name: setup openvpn auto-start & start
   service:

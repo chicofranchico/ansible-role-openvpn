@@ -2,94 +2,101 @@
 ---
 - name: Copy openssl client extensions
   copy:
-    src: "{{ openssl-client.ext }}"
-    dest: "{{ openvpn_key_dir }}"
+    src: "{{ openssl_client_ext }}"
+    dest: "{{ openvpn_key_dir }}/openssl-client.ext"
     owner: root
     group: root
     mode: 0400
   when: openssl_client_ext is defined
 
-- name: Copy openssl client extensions
-  copy:
-    src: openssl-client.ext
-    dest: "{{ openvpn_key_dir }}/openssl-client.ext"
-    owner: root
-    group: root
-    mode: 0400
-  when: openssl_client_ext is not defined
-
 - name: copy client key
   copy:
-    src: "{{ item.key }}"
-    dest: "{{ openvpn_key_dir }}/{{ item.username }}.key"
-  with_items: "{{ clients }}"
-  when: item.key is defined
+    src: "{{ item.value.client_key }}"
+    dest: "{{ openvpn_key_dir }}/{{ item.key }}.key"
+  with_dict: "{{ clients }}"
+  when:
+    - item.value.client_key is defined
 
 - name: generate client key
-  command: 'openssl req -nodes -newkey rsa:{{ openvpn_rsa_bits }} -keyout {{ item.username }}.key -out {{ item.username }}.csr -days 3650 -subj "/C={{ cert_country_name[:64] }}/ST={{ cert_state[:64] }}/L={{ cert_locality[:64] }}/O={{ cert_org_name[:64] }}/CN={{ inventory_hostname[:64] }}"'
+  command: 'openssl req -nodes -newkey rsa:{{ openvpn_rsa_bits }} -keyout {{ item.key }}.key -out {{ item.key }}.csr -days 3650 -subj "/CN=OpenVPN-Client-{{ inventory_hostname[:24] }}-{{ item.key[:24] }}/"'
   args:
     chdir: "{{ openvpn_key_dir }}"
-    creates: "{{ item.username }}.key"
-  with_items: "{{ clients }}"
-  when: item.key is not defined
-
-- name: protect client keys
-  file:
-    path: "{{ openvpn_key_dir }}/{{ item.username }}.key"
-    mode: 0400
-  with_items: "{{ clients }}"
+    creates: "{{ item.key }}.key"
+  with_dict: "{{ clients }}"
+  when: item.value.client_key is not defined
 
 - name: copy client cert
   copy:
-    src: "{{ item.crt }}"
-    dest: "{{ openvpn_key_dir }}/{{ item.username }}.crt"
-  with_items: "{{ clients }}"
-  when: item.crt is defined
+    src: "{{ item.value.client_crt }}"
+    dest: "{{ openvpn_key_dir }}/{{ item }}.crt"
+  with_dict: "{{ clients }}"
+  when: item.value.client_crt is defined
+
+- name: protect client keys
+  file:
+    path: "{{ openvpn_key_dir }}/{{ item.key }}.key"
+    mode: 0400
+  with_dict: "{{ clients }}"
 
 - name: sign client key
-  command: openssl x509 -req -in {{ item.username }}.csr -out {{ item.username }}.crt -CA ca.crt -CAkey ca-key.pem -sha256 -days 3650 -extfile openssl-client.ext
+  command: openssl x509 -req -in {{ item.key }}.csr -out {{ item.key }}.crt -CA ca.crt -CAkey ca-key.pem -sha256 -days 3650 -extfile openssl-client.ext
   args:
     chdir: "{{ openvpn_key_dir }}"
-    creates: "{{ item.username }}.crt"
-  with_items: "{{ clients }}"
-  when: item.key is not defined
+    creates: "{{ item.key }}.crt"
+  with_dict: "{{ clients }}"
 
-- name: register server ca key
-  slurp:
-    src: "{{ openvpn_key_dir }}/ca.crt"
-  register: ca_cert
+- block:
+  - name: register server ca key
+    slurp:
+      src: "{{ openvpn_key_dir }}/ca.crt"
+    register: ca_cert
 
-- name: register tls-auth key
-  slurp:
-    src: "{{ openvpn_key_dir }}/ta.key"
-  register: tls_auth
+  - name: register tls-auth key
+    slurp:
+      src: "{{ openvpn_key_dir }}/ta.key"
+    register: tls_auth
 
-- name: register client certs
-  slurp:
-    src: "{{ openvpn_key_dir }}/{{ item.username }}.crt"
-  with_items: "{{ clients }}"
-  register: client_certs
+  - name: register client certs
+    slurp:
+      src: "{{ openvpn_key_dir }}/{{ item.key }}.crt"
+    with_dict: "{{ clients }}"
+    register: client_certs
 
-- name: register client keys
-  slurp:
-    src: "{{ openvpn_key_dir }}/{{ item.username }}.key"
-  with_items: "{{ clients }}"
-  register: client_keys
+  - name: register client keys
+    slurp:
+      src: "{{ openvpn_key_dir }}/{{ item.key }}.key"
+    with_dict: "{{ clients }}"
+    register: client_keys
+  when: not ansible_check_mode
 
 - name: generate client config
   template:
     src: "{{ openvpn_client_template }}"
-    dest: "{{ openvpn_base_dir }}/{{ item.0.item.username }}@{{ openvpn_server_hostname }}.{{ openvpn_port }}.ovpn"
+    dest: "{{ openvpn_base_dir }}/{{ item.0.item.key }}@{{ openvpn_server_hostname }}.{{ openvpn_port }}.ovpn"
     owner: root
     group: root
     mode: 0400
   with_together:
     - "{{ client_certs.results }}"
     - "{{ client_keys.results }}"
+  when: not ansible_check_mode
+
+- name: generate client specific config
+  template:
+    src: "client_specific.j2"
+    dest: "{{ openvpn_base_dir }}/{{ openvpn_client_config_dirname }}//OpenVPN-Client-{{ inventory_hostname[:24] }}-{{ item.key }}"
+    owner: nobody
+    group: nogroup
+    mode: 0644
+  with_dict: "{{ clients }}"
+  when:
+    - openvpn_client_config_dirname is defined
+    - item.value.client_specifc_config is defined
 
 - name: fetch client config
   fetch:
-    src: "{{ openvpn_base_dir }}/{{ item.username }}@{{ openvpn_server_hostname }}.{{ openvpn_port }}.ovpn"
-    dest: "{{ openvpn_fetch_config_dir }}/{{ item.username }}@{{ openvpn_server_hostname }}.{{ openvpn_port }}.ovpn"
+    src: "{{ openvpn_base_dir }}/{{ item.key }}@{{ openvpn_server_hostname }}.{{ openvpn_port }}.ovpn"
+    dest: "{{ openvpn_fetch_config_dir }}/{{ item.key }}@{{ openvpn_server_hostname }}.{{ openvpn_port }}.ovpn"
     flat: yes
-  with_items: "{{ clients }}"
+  with_dict: "{{ clients }}"
+  when: not ansible_check_mode

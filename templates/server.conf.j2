@@ -41,7 +41,7 @@ duplicate-cn
 client-to-client
 {% endif %}
 
-server {{openvpn_server_network}} {{openvpn_server_netmask}}
+server {{ openvpn_server_network }} {{ openvpn_server_netmask }}
 {% if openvpn_server_ipv6_network is defined %}
 server-ipv6 {{openvpn_server_ipv6_network}}
 {% endif %}
@@ -71,7 +71,7 @@ push "{{ opt }}"
 {% endfor %}
 {% endif %}
 keepalive 5 30
-{% if openvpn_compression is not none %}
+{% if openvpn_compression %}
 compress {{ openvpn_compression }}
 {% endif %}
 persist-key
@@ -96,12 +96,12 @@ remote-cert-tls client
 {% if openvpn_enable_management|bool %}
 management {{openvpn_management_bind}}
 {% if openvpn_management_client_user %}
-management-client-user {{openvpn_management_client_user}}
+management-client-user {{ openvpn_management_client_user }}
 {% endif %}
 {% endif %}
 
-{% if openvpn_client_config_dir %}
-client-config-dir /etc/openvpn/ccd
+{% if openvpn_client_config_dirname %}
+client-config-dir /etc/openvpn/{{ openvpn_client_config_dirname }}
 {% endif %}
 
 {% if client_to_client %}
