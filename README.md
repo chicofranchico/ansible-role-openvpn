@@ -29,13 +29,14 @@ In case you need specific configuration like a fixed IP address or to push a rou
 
 Make sure the `openvpn_client_config_dirname` variable is set to write specific configs correctly.
 
-```clients:
-  - client1
-  - client2:
+```
+openvpn_clients:
+  client1
+  client2:
       client_specifc_config:
         - "ifconfig-push 10.9.0.2 10.9.0.1"
         - "iroute 10.0.0.0 255.255.0.0"
-  - client3
+  client3
 ```
 
 ### Configuration variables
@@ -121,7 +122,7 @@ Example Playbook
     - hosts: vpn
       gather_facts: true
       roles:
-        - {role: kyl191.openvpn, clients: [client1, client2],
+        - {role: chicofranchico.openvpn, openvpn_clients: { client1, client2 },
                             openvpn_port: 4300}
 
 > **Note:** As the role will need to know the remote used platform (32 or 64 bits), you must set `gather_facts` to `true` in your play.

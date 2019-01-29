@@ -54,7 +54,7 @@
 
 - name: Generate client configs
   include_tasks: client_keys.yml
-  when: clients is defined
+  when: openvpn_clients is defined
   tags:
     - client_keys
 
@@ -72,7 +72,7 @@
 - name: Prepare OpenVPN client config bundles
   include_tasks: tunnelblick.yml
   when:
-    - clients is defined
+    - openvpn_clients is defined
     - tunnelblick is defined
   tags:
     - configure

@@ -25,5 +25,5 @@
     src: "{{ openvpn_key_dir }}/tunnelblick/{{ item.username }}@{{ openvpn_server_hostname }}.{{ openvpn_port }}.tblk.zip"
     dest: "{{ local_backup_location }}/tunnelblick/{{ item.username }}@{{ openvpn_server_hostname }}.{{ openvpn_port }}.tblk.zip"
     flat: True
-  with_items: "{{ clients }}"
+  with_items: "{{ openvpn_clients }}"
   when: tunnelblick
