@@ -25,19 +25,6 @@
     mode: 0400
   when: ansible_os_family != 'Solaris'
 
-- name: create client config dir
-  file:
-    path: "{{ openvpn_base_dir }}/{{ openvpn_client_config_dirname }}"
-    owner: nobody
-    group: nogroup
-    state: directory
-    mode: 0755
-  when: openvpn_client_config_dirname is defined
-
-- name: deine mutter
-  debug:
-    msg: "{{ openvpn_service_name }}"
-
 - name: setup openvpn auto-start & start
   service:
     name: "{{ openvpn_service_name }}"
