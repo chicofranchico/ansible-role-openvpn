@@ -1,4 +1,7 @@
 ---
+- name: Reload systemctl daemon
+  shell: "systemctl daemon-reload"
+
 - name: restart openvpn
   service:
     name: "{{openvpn_service_name}}"

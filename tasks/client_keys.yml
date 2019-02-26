@@ -93,7 +93,7 @@
 - name: generate client specific config
   template:
     src: "client_specific.j2"
-    dest: "{{ openvpn_base_dir }}/{{ openvpn_client_config_dirname }}//OpenVPN-Client-{{ inventory_hostname[:24] }}-{{ item.key }}"
+    dest: "{{ openvpn_base_dir }}/{{ openvpn_client_config_dirname }}/OpenVPN-Client-{{ inventory_hostname[:24] }}-{{ item.key }}"
     owner: nobody
     group: nogroup
     mode: 0644
