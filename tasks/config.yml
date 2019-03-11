@@ -28,7 +28,7 @@
 - name: Systemd with the correct path
   copy:
     src: systemd.service
-    dest: /usr/lib/systemd/system/openvpn-server\@.service
+    dest: /usr/lib/systemd/system/openvpn-server@{{ openvpn_config_file }}.service
     owner: root
     group: root
     mode: 0400
